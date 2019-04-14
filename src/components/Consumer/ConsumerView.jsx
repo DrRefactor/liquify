@@ -8,6 +8,7 @@ import { DataSection } from './DataSection';
 
 export class ConsumerView extends React.Component {
   render() {
+    const { id: offerId } = this.props.match.params 
     return (
       <Container>
         <TopHeader>
@@ -16,11 +17,11 @@ export class ConsumerView extends React.Component {
           </BreadCrumb>
         </TopHeader>
         <PageHeader>
-          <BreadCrumb first={true} Container={props => <PureLink to='/consumer' {...props} />}>
+          <BreadCrumb first={true}>
             Consumer
           </BreadCrumb>
         </PageHeader>
-        <DataSection />
+        <DataSection offerId={offerId} />
       </Container>
     )
   }

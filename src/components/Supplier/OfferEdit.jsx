@@ -1,13 +1,21 @@
 import React from 'react';
 import styled from 'styled-components';
 import { Formik, Field } from 'formik';
-import { FormField } from '../common/FormField';
+import { FormField, DateField, FormTextField } from '../common/FormField';
 import { Colors } from '../constants/Colors';
 import { CommonStyles } from '../constants/CommonStyles';
 import { SupplierService } from '../../backend/supplier/service/supplier';
 import { LoadingOverlay } from '../common/Loading/Overlay';
+import { PrimaryButton } from '../common/Button';
+import { DateTimePicker } from "material-ui-pickers";
+import { Snackbar } from '../common/Snackbar';
 
 export class OfferEdit extends React.Component {
+  constructor(props) {
+    super(props)
+    this.snackbar = React.createRef()
+  }
+  
   render() {
     return (
       <Container>
@@ -15,20 +23,29 @@ export class OfferEdit extends React.Component {
           {/* <Title>Edit offer</Title> */}
         </Header>
         <FormContainer>
-          <OfferEditForm />
+          <OfferEditForm onSubmitSuccess={this.onOfferSubmit} />
         </FormContainer>
+        <Snackbar ref={this.snackbar} />
       </Container>
     )
   }
+  onOfferSubmit = () => {
+    this.openSnackbar("Offer submitted")
+  }
+  openSnackbar = text => {
+    if (this.snackbar.current) {
+      this.snackbar.current.open(text)
+    }
+  } 
 }
 
-function OfferEditForm(props) {
+function OfferEditForm({ onSubmitSuccess }) {
   return (
     <Formik
         initialValues={{
           supplier: '',
           ratio: '',
-          expirationDate: '',
+          expirationDate: new Date(),
           invoiceFilename: '',
           invoiceFileData: null
         }}
@@ -46,6 +63,7 @@ function OfferEditForm(props) {
               .postOffer({ invoiceId, expirationDate, ratio, supplier })
               .then(res => {
                 setSubmitting(false);
+                onSubmitSuccess();
               })
             )
         }}
@@ -67,27 +85,24 @@ function OfferEditForm(props) {
         return (
           <Form onSubmit={handleSubmit}>
             {isSubmitting && <LoadingOverlay />}
-            <FormField
+            <FormTextField
               id='supplier'
               label="Supplier name"
               value={values.supplier}
               onChange={handleChange}
               onBlur={handleBlur}
             />
-            <FormField
+            <FormTextField
               id='ratio'
               label="Ratio"
               value={values.ratio}
               onChange={handleChange}
               onBlur={handleBlur}
             />
-            <FormField
-              id='expirationDate'
-              label="Expiration date"
-              type='date'
+            <DateField
               value={values.expirationDate}
-              onChange={handleChange}
-              onBlur={handleBlur}
+              onChange={date => setFieldValue('expirationDate', date)}
+              label="Expiration date"
             />
             <FormField
               type='file'
@@ -108,13 +123,11 @@ function OfferEditForm(props) {
               <PrimaryButton
                 disabled={false}
                 type="submit"
-                style={{ margin: '20px' }}
               >Submit</PrimaryButton>
               <PrimaryButton
                 type="button"
                 onClick={handleReset}
                 disabled={!dirty || isSubmitting}
-                style={{ margin: '20px' }}
               >Reset</PrimaryButton>
             </ActionRow>
           </Form>
@@ -122,20 +135,6 @@ function OfferEditForm(props) {
       }}</Formik>
   )
 }
-
-const PrimaryButton = styled.button`
-  border: none;
-  outline: none;
-  cursor: ${props => props.disabled ? 'auto' : 'pointer'};
-  margin: auto;
-  background-color: ${Colors.primaryTool};
-  color: ${props => props.disabled ? Colors.fontLightDisabled : Colors.fontLight};
-  padding-left: 10px;
-  padding-right: 10px;
-  padding-top: 5px;
-  padding-bottom: 5px;
-  border-radius: ${CommonStyles.borderRadius};
-`
 
 const Form = styled.form`
   width: 50%;
